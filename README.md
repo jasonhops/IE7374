@@ -124,6 +124,7 @@ We use the [**RecipeNLG dataset**](https://www.kaggle.com/datasets/paultimothymo
   "source": "www.food.com",
   "ner": ["beef", "rice"]
 }
+```
 
 ## 🤖 Modeling & AI Agents
 
