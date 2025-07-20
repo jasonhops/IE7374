@@ -159,7 +159,7 @@ To get started, install the necessary dependencies:
 
 ```bash
 pip install -r requirements.txt
-
+```
 
 ### ▶️ Launch the Interface
 
@@ -167,7 +167,7 @@ Run the Streamlit app using the following command:
 
 ```bash
 streamlit run fridge_ai_app.py
-
+```
 
 ---
 
