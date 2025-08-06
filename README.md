@@ -70,9 +70,8 @@ GPT-2 is the core **recipe generation engine**, surrounded by supporting modules
 
 1. **User Input** via Streamlit – User enters available ingredients.
 2. **Inventory DB** (DuckDB or SQLite) – Tracks items and expiration.
-3. **LangChain Agents (RAG Layer)** – Retrieve nutritional info or similar recipe templates.
-4. **GPT-2 Model** – Generates new recipes based on user input.
-5. **User Feedback** – Accept/reject logic used for possible future model refinement.
+3. **GPT-2 Model** – Generates new recipes based on user input.
+4. **User Feedback** – Accept/reject logic used for possible future model refinement.
 
 ---
 
@@ -84,9 +83,8 @@ GPT-2 is the core **recipe generation engine**, surrounded by supporting modules
 
 1. **User Input** via Streamlit – User enters available ingredients.
 2. **Inventory DB** (DuckDB or SQLite) – Tracks items and expiration.
-3. **LangChain Agents (RAG Layer)** – Retrieve nutritional info or similar recipe templates.
-4. **GPT-2 Model** – Generates new recipes based on user input.
-5. **User Feedback** – Accept/reject logic used for possible future model refinement.
+3. **GPT-2 Model** – Generates new recipes based on user input.
+4. **User Feedback** – Accept/reject logic used for possible future model refinement.
 
 ---
 
@@ -100,7 +98,6 @@ GPT-2 is the core **recipe generation engine**, surrounded by supporting modules
 Our system is a pipeline integrating:
 - **Manual inventory input** (via Streamlit interface)
 - **GPT-2 model fine-tuned** with RecipeNLG for generating recipes
-- **LangChain AI agents** for prompt routing, ingredient substitutions, and optional nutritional lookups
 - **Lightweight storage** (DuckDB or SQLite) to track inventory and updates
 
 > 📌 Future expansion: Optional integration of vision-based models for scanning fridge contents.
@@ -126,7 +123,7 @@ We use the [**RecipeNLG dataset**](https://www.kaggle.com/datasets/paultimothymo
 }
 ```
 
-## 🤖 Modeling & AI Agents
+## 🤖 Modeling & UI Interface
 
 ### GPT-2 Fine-Tuning
 
@@ -136,18 +133,12 @@ We use the [**RecipeNLG dataset**](https://www.kaggle.com/datasets/paultimothymo
 - **Training**: Hugging Face Transformers using Colab  
 - **Cleaning**: Removed short or vague recipes; ensured consistency
 
-### LangChain Agents
-
-- **Agent 1**: Generates recipes using GPT-2 and inventory input  
-- **Agent 2**: Suggests alternatives for missing items  
-- **RAG Integration**: Future ability to pull nutrition facts or substitutions from a retrieval database
-
 ### Streamlit App Interface
 
 - Users input fridge contents  
 - Get recipe recommendations (accept/reject)  
 - Notifications for expiring items  
-- Interact with agent via chat-like interface  
+- Interact with model via chat-like interface  
 
 ---
 
@@ -181,9 +172,8 @@ streamlit run home.py
 
 | File / Folder       | Description                                      |
 |---------------------|--------------------------------------------------|
-| `fridge_ai_app.py`  | Streamlit interface for interacting with the AI  |
+| `home.py`  | Streamlit interface for interacting with the AI  |
 | `gpt2_trainer.py`   | Script for fine-tuning the GPT-2 model           |
-| `rag_agent.py`      | LangChain RAG agent logic                        |
 | `dataset/`          | Folder containing cleaned RecipeNLG subset       |
 | `code/`             | Saved fine-tuned GPT-2 weights                   |
 | `documentation/`    | Key project details and articles                 |
@@ -195,7 +185,7 @@ streamlit run home.py
 - **Ahantya Vempati** – Architecture Research & Proofreading  
 - **Chantelle Chan** – Data Preprocessing & Testing  
 - **Jensen Ho** – GPT-2 Training & Hyperparameter Tuning  
-- **Shyam Patel** – LangChain Integration & Streamlit App  
+- **Shyam Patel** – Streamlit App & Front End Development
 
 ---
 
