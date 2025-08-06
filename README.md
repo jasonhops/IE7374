@@ -5,7 +5,6 @@
 - [About the Project](#about-the-project)
 - [Architecture Overview](#architecture-overview)
 - [Dataset](#dataset)
-- [Modeling & AI Agents](#modeling--ai-agents)
 - [Setup & Running the App](#setup--running-the-app)
 - [Research Questions](#research-questions)
 - [Contributors](#contributors)
