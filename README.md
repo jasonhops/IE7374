@@ -156,17 +156,23 @@ We use the [**RecipeNLG dataset**](https://www.kaggle.com/datasets/paultimothymo
 ### 🔧 Requirements
 
 To get started, install the necessary dependencies:
-
+[The Requirements File is located at this link.](https://github.com/jasonhops/IE7374/blob/main/code/streamlit/requirements.txt)
 ```bash
 pip install -r requirements.txt
 ```
 
+### Model Setup
+
+Modify the home.py file with the path of your trained model paths on line 7 of the file.
+```python
+    model_path = "./gpt2-recipes-manual_at_80pct" #Change this to your location of your trained model
+```
 ### ▶️ Launch the Interface
 
 Run the Streamlit app using the following command:
 
 ```bash
-streamlit run fridge_ai_app.py
+streamlit run home.py
 ```
 
 ---
