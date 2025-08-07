@@ -157,6 +157,8 @@ Modify the home.py file with the path of your trained model paths on line 7 of t
 ```python
     model_path = "./gpt2-recipes-manual_at_80pct" #Change this to your location of your trained model
 ```
+Link to download model: https://drive.google.com/file/d/1nhqfTEkk4A3WXU6sXZ1ZBdy6GSzIwNUj/view?usp=share_link
+
 ### ▶️ Launch the Interface
 
 Run the Streamlit app using the following command:
