@@ -12,6 +12,7 @@ import streamlit as st
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import re
+from datetime import date
 
 @st.cache_resource
 def load_model():
@@ -70,8 +71,103 @@ def generate_recipe(model, tokenizer, device, prompt, max_retries=3):
     
     return result
 
+def update_inventory_from_prompt(prompt):
+    missing_items = []
+
+    for item in ITEMS_LIST:
+        if item.lower() in prompt.lower():
+            # Deduct 1 by default for matched ingredient
+            found = False
+            for entry in st.session_state.fridge:
+                if entry["item"] == item:
+                    entry["quantity"] -= 1
+                    if entry["quantity"] < 0:
+                        missing_items.append(item)
+                    found = True
+                    break
+            if not found:
+                missing_items.append(item)
+
+    # Remove items with zero or less quantity
+    st.session_state.fridge = [f for f in st.session_state.fridge if f["quantity"] > 0]
+
+    # Save missing items to session state for display after rerun
+    st.session_state.missing_items = missing_items
+
+
 st.set_page_config(page_title="Recipe AI", page_icon="👨‍🍳")
 st.title("👨‍🍳 Recipe AI Assistant")
+
+# --------------------------
+# 1. Initialize Fridge State
+# --------------------------
+if "fridge" not in st.session_state:
+    st.session_state.fridge = []  # list of dicts: {item, quantity, expiry}
+
+# --------------------------
+# 2. Predefined Items
+# --------------------------
+ITEMS_LIST = [
+    "milk", "cheese", "cream cheese", "butter", "yogurt", "sour cream", "egg",
+    "tomato", "onion", "lettuce", "spinach", "cabbage", "zucchini", "carrot",
+    "garlic", "cucumber", "pepper", "celery", "apple", "grapes", "corn", "mushroom"
+]
+
+# --------------------------
+# 3. Fridge Inventory UI
+# --------------------------
+# Initialize state flags
+if "recipe_generated" not in st.session_state:
+    st.session_state.recipe_generated = False
+if "accept_reject_used" not in st.session_state:
+    st.session_state.accept_reject_used = False
+
+#defult item and quantity for quick add
+if "fridge_initialized" not in st.session_state:
+    st.session_state.fridge.append({
+        "item": "milk",
+        "quantity": 1,
+        "expiry": date.today()
+    })
+    st.session_state.fridge.append({
+        "item": "egg",
+        "quantity": 6,
+        "expiry": date.today()
+    })
+    st.session_state.fridge_initialized = True
+
+with st.container():
+    st.header("🥶 Fridge Inventory Tracker")
+
+    col1, col2, col3, col4 = st.columns([3, 1, 2, 1])
+    with col1:
+        item = st.selectbox("Select Item", ITEMS_LIST)
+    with col2:
+        quantity = st.number_input("Quantity", min_value=1, step=1)
+    with col3:
+        expiry = st.date_input("Expiry Date", min_value=date.today())
+    with col4:
+        if st.button("➕ Add Item"):
+            st.session_state.fridge.append({
+                "item": item,
+                "quantity": quantity,
+                "expiry": expiry
+            })
+    # After the columns block, outside the column but still inside the container
+    if st.session_state.fridge and len(st.session_state.fridge) > 0:
+        # Show success only if the last item was just added (by checking if fridge was updated this run)
+        last_entry = st.session_state.fridge[-1]
+        # Optionally, you could track the last added item in session_state for more robust logic
+        st.success(f"Added {last_entry['quantity']} x {last_entry['item']} (expires {last_entry['expiry']}) to fridge.")
+
+    # --------------------------
+    # 4. Display Current Inventory
+    # --------------------------
+    if st.session_state.fridge:
+        st.subheader("Current Fridge Contents")
+        st.table(st.session_state.fridge)
+    else:
+        st.info("Fridge is currently empty.")
 
 model, tokenizer, device = load_model()
 if device.type == "cuda":
@@ -81,7 +177,8 @@ elif device.type == "mps":
 else:
     device_name = "CPU"
 
-st.info(f"Model loaded on {device_name}")
+if not st.session_state.recipe_generated:
+    st.info(f"Model loaded on {device_name}")
 st.write("Enter ingredients below and click 'Generate Recipe'")
 
 with st.form("recipe_form", clear_on_submit=True):
@@ -92,24 +189,53 @@ with st.form("recipe_form", clear_on_submit=True):
         with st.spinner("Generating recipe..."):
             try:
                 recipe = generate_recipe(model, tokenizer, device, user_input)
-                
-                if "Instructions:" in recipe:
-                    parts = recipe.split("Instructions:", 1)
-                    if len(parts) == 2:
-                        title = parts[0].strip().rstrip('.')
-                        instructions = parts[1].strip()
-                        st.success("Recipe Generated!")
-                        st.markdown(f"**{title}**")
-                        st.markdown(f"**Instructions:** {instructions}")
-                    else:
-                        st.success("Recipe Generated!")
-                        st.markdown(recipe)
-                else:
-                    st.success("Recipe Generated!")
-                    st.markdown(f"**Recipe Suggestion:** {recipe}")
-                    
+                st.session_state.generated_prompt = user_input
+                st.session_state.generated_recipe = recipe
+                st.session_state.recipe_generated = True
+                st.session_state.accept_reject_used = False  # reset for new recipe
+                st.session_state.missing_items = []  # reset missing items
+
             except Exception as e:
                 st.error(f"Error: {str(e)}")
+
+if st.session_state.get("generated_recipe"):
+    #st.write(st.session_state.generated_recipe)
+    recipe = st.session_state.generated_recipe
+    if "Instructions:" in recipe:
+        parts = recipe.split("Instructions:", 1)
+        if len(parts) == 2:
+            title = parts[0].strip().rstrip('.')
+            instructions = parts[1].strip()
+            if not st.session_state.get("accept_reject_used"):
+                st.success("Recipe Generated!")
+            st.markdown(f"**{title}**")
+            st.markdown(f"**Instructions:** {instructions}")
+        else:
+            if not st.session_state.get("accept_reject_used"):
+                st.success("Recipe Generated!")
+            st.markdown(recipe)
+    else:
+        if not st.session_state.get("accept_reject_used"):
+            st.success("Recipe Generated!")
+        st.markdown(f"**Recipe Suggestion:** {recipe}")
+
+if st.session_state.get("missing_items"):
+    st.warning("🛒 You need to buy: " + ", ".join(st.session_state.missing_items))
+
+if st.session_state.get("recipe_generated"):
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("✅ Accept Recipe", disabled=st.session_state.accept_reject_used):
+            update_inventory_from_prompt(st.session_state.generated_prompt)
+            st.success("Recipe accepted. Matching ingredients deducted from fridge.")
+            st.session_state.accept_reject_used = True
+            st.rerun()
+
+    with col2:
+        if st.button("❌ Reject Recipe", disabled=st.session_state.accept_reject_used):
+            st.info("Recipe rejected. No changes made to fridge.")
+            st.session_state.accept_reject_used = True
+            st.rerun()
 
 st.subheader("💡 Try these examples:")
 col1, col2 = st.columns(2)
